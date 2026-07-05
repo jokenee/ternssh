@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Plus } from "lucide-react";
+import { FolderPlus, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { api, type Dashboard, type Server } from "@/lib/api";
+import { api, type Dashboard, type TreeNode } from "@/lib/api";
 import { ServerListWidget } from "@/widgets/ServerListWidget";
 import { TerminalWidget } from "@/widgets/TerminalWidget";
 import type { WidgetContext } from "@/widgets/types";
+import { AddGroupDialog } from "./AddGroupDialog";
 import { AddServerDialog } from "./AddServerDialog";
 import { GridDashboard } from "./GridDashboard";
 import { layoutsEqual, type GridItem } from "./grid-utils";
@@ -54,13 +55,15 @@ function layoutToWidgets(
 export function DashboardView() {
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [layout, setLayout] = useState<GridItem[]>([]);
-  const [servers, setServers] = useState<Server[]>([]);
+  const [tree, setTree] = useState<TreeNode[]>([]);
   const [loading, setLoading] = useState(true);
+  const [treeMoving, setTreeMoving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedServerId, setSelectedServerId] = useState<string | null>(null);
   const [sessionWsUrl, setSessionWsUrl] = useState<string | null>(null);
   const [terminalStatus, setTerminalStatus] = useState("idle");
   const [addOpen, setAddOpen] = useState(false);
+  const [groupOpen, setGroupOpen] = useState(false);
   const dashboardRef = useRef<Dashboard | null>(null);
   const persistTimerRef = useRef<number | null>(null);
   const isEditingRef = useRef(false);
@@ -69,13 +72,13 @@ export function DashboardView() {
     setLoading(true);
     setError(null);
     try {
-      const [dashboardResponse, serversResponse] = await Promise.all([
+      const [dashboardResponse, treeResponse] = await Promise.all([
         api.getDashboard(),
-        api.listServers(),
+        api.getServerTree(),
       ]);
       dashboardRef.current = dashboardResponse;
       setDashboard(dashboardResponse);
-      setServers(serversResponse.servers);
+      setTree(treeResponse.tree);
 
       if (!isEditingRef.current) {
         setLayout(widgetsToLayout(dashboardResponse.widgets));
@@ -151,6 +154,30 @@ export function DashboardView() {
     await load();
   };
 
+  const handleDeleteGroup = async (groupId: string) => {
+    await api.deleteGroup(groupId);
+    await load();
+  };
+
+  const handleMoveItem = async (input: {
+    type: "server" | "group";
+    id: string;
+    parentId: string | null;
+    index: number;
+  }) => {
+    setTreeMoving(true);
+    setError(null);
+    try {
+      const response = await api.moveTreeItem(input);
+      setTree(response.tree);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "移动失败");
+      await load();
+    } finally {
+      setTreeMoving(false);
+    }
+  };
+
   if (loading && !dashboard) {
     return (
       <div className="workspace flex items-center justify-center text-sm text-[var(--color-muted-foreground)]">
@@ -191,15 +218,26 @@ export function DashboardView() {
 
           if (widget.type === "server_list") {
             return (
-              <Button
-                className="widget-no-drag"
-                size="sm"
-                variant="secondary"
-                onClick={() => setAddOpen(true)}
-              >
-                <Plus className="mr-1 h-3 w-3" />
-                添加
-              </Button>
+              <div className="widget-no-drag flex items-center gap-1">
+                <Button
+                  className="widget-no-drag"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setGroupOpen(true)}
+                >
+                  <FolderPlus className="mr-1 h-3 w-3" />
+                  分组
+                </Button>
+                <Button
+                  className="widget-no-drag"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setAddOpen(true)}
+                >
+                  <Plus className="mr-1 h-3 w-3" />
+                  添加
+                </Button>
+              </div>
             );
           }
 
@@ -216,10 +254,13 @@ export function DashboardView() {
           if (widget.type === "server_list") {
             return (
               <ServerListWidget
-                servers={servers}
+                tree={tree}
                 loading={loading}
+                moving={treeMoving}
                 context={widgetContext}
                 onDeleteServer={(serverId) => void handleDeleteServer(serverId)}
+                onDeleteGroup={(groupId) => void handleDeleteGroup(groupId)}
+                onMoveItem={handleMoveItem}
               />
             );
           }
@@ -247,6 +288,15 @@ export function DashboardView() {
         onOpenChange={setAddOpen}
         onCreated={async () => {
           setAddOpen(false);
+          await load();
+        }}
+      />
+
+      <AddGroupDialog
+        open={groupOpen}
+        onOpenChange={setGroupOpen}
+        onCreated={async () => {
+          setGroupOpen(false);
           await load();
         }}
       />

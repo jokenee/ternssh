@@ -15,6 +15,8 @@ export interface ServerRecord {
   username: string;
   auth_type: "password" | "private_key";
   credential_ref: string;
+  group_id: string | null;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }
@@ -26,9 +28,34 @@ export interface ServerPublic {
   port: number;
   username: string;
   auth_type: "password" | "private_key";
+  group_id: string | null;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }
+
+export interface GroupRecord {
+  id: string;
+  user_id: string;
+  name: string;
+  parent_id: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type TreeNode =
+  | {
+      type: "group";
+      id: string;
+      name: string;
+      parent_id: string | null;
+      sort_order: number;
+      children: TreeNode[];
+    }
+  | ({
+      type: "server";
+    } & ServerPublic);
 
 export interface DashboardRecord {
   id: string;

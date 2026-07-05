@@ -1,4 +1,4 @@
-import type { Server } from "@/lib/api";
+import type { TreeNode } from "@/lib/api";
 
 export interface WidgetContext {
   selectedServerId: string | null;
@@ -11,9 +11,17 @@ export interface WidgetProps {
 }
 
 export interface ServerListWidgetProps extends WidgetProps {
-  servers: Server[];
+  tree: TreeNode[];
   loading: boolean;
+  moving: boolean;
   onDeleteServer: (serverId: string) => void;
+  onDeleteGroup: (groupId: string) => void;
+  onMoveItem: (input: {
+    type: "server" | "group";
+    id: string;
+    parentId: string | null;
+    index: number;
+  }) => Promise<void>;
 }
 
 export interface TerminalWidgetProps extends WidgetProps {

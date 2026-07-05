@@ -13,9 +13,33 @@ export interface Server {
   port: number;
   username: string;
   auth_type: "password" | "private_key";
+  group_id: string | null;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }
+
+export interface ServerGroup {
+  id: string;
+  name: string;
+  parent_id: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type TreeNode =
+  | {
+      type: "group";
+      id: string;
+      name: string;
+      parent_id: string | null;
+      sort_order: number;
+      children: TreeNode[];
+    }
+  | ({
+      type: "server";
+    } & Server);
 
 export interface DashboardWidget {
   id: string;
@@ -53,6 +77,7 @@ export interface CreateServerInput {
   username: string;
   auth_type: "password" | "private_key";
   credential: string;
+  group_id?: string | null;
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -76,10 +101,30 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   getMe: () => request<MeResponse>("/api/v1/me"),
-  listServers: () => request<{ servers: Server[] }>("/api/v1/servers"),
+  getServerTree: () => request<{ tree: TreeNode[] }>("/api/v1/servers/tree"),
+  listServers: () => request<{ tree: TreeNode[] }>("/api/v1/servers"),
   createServer: (input: CreateServerInput) =>
     request<{ server: Server }>("/api/v1/servers", {
       method: "POST",
+      body: JSON.stringify(input),
+    }),
+  createGroup: (input: { name: string; parent_id?: string | null }) =>
+    request<{ group: ServerGroup }>("/api/v1/servers/groups", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  deleteGroup: (id: string) =>
+    request<{ ok: boolean }>(`/api/v1/servers/groups/${id}`, {
+      method: "DELETE",
+    }),
+  moveTreeItem: (input: {
+    type: "server" | "group";
+    id: string;
+    parentId: string | null;
+    index: number;
+  }) =>
+    request<{ tree: TreeNode[] }>("/api/v1/servers/move", {
+      method: "PUT",
       body: JSON.stringify(input),
     }),
   deleteServer: (id: string) =>
