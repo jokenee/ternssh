@@ -28,6 +28,8 @@ export const zh = {
     settingsGeneralHint: "语言等基础选项",
     language: "语言",
     languageHint: "选择界面显示语言",
+    siteName: "站点名称",
+    siteNameHint: "显示在顶部栏与浏览器标签页标题",
     theme: "外观",
     themeHint: "选择浅色、深色或跟随系统",
     themeSystem: "跟随系统",

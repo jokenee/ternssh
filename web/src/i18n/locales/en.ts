@@ -30,6 +30,8 @@ export const en: Messages = {
     settingsGeneralHint: "Language and other basic options",
     language: "Language",
     languageHint: "Choose the interface language",
+    siteName: "Site name",
+    siteNameHint: "Shown in the header and browser tab title",
     theme: "Appearance",
     themeHint: "Choose light, dark, or match the system setting",
     themeSystem: "System",

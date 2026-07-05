@@ -21,6 +21,11 @@
         document.documentElement.dataset.theme = resolved;
         document.documentElement.style.colorScheme = resolved;
 
+        var siteName = localStorage.getItem("ternssh-site-name");
+        if (siteName && siteName.trim()) {
+          document.title = siteName.trim().slice(0, 64);
+        }
+
         var opacity = localStorage.getItem("ternssh-widget-opacity");
         if (opacity) {
           var parsed = parseInt(opacity, 10);

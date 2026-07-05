@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { LanguageSelect } from "@/components/LanguageSelect";
+import { SiteNameField } from "@/components/SiteNameField";
 import { Modal } from "@/components/Modal";
 import { PersonalizationSection } from "@/components/PersonalizationSection";
 import { Button } from "@/components/ui/button";
@@ -98,6 +99,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   {t("header.settingsGeneralHint")}
                 </p>
               </div>
+              <SiteNameField />
               <LanguageSelect />
 
               <div className="border-t border-[var(--color-border)] pt-6">
