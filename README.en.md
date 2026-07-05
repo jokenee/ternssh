@@ -115,7 +115,23 @@ export CLOUDFLARE_ACCOUNT_ID=<optional, required with multiple accounts>
 npm run deploy
 ```
 
-**Cloudflare Workers Builds (Git)**: set build env vars `D1_DATABASE_ID` (required) and `CLOUDFLARE_ACCOUNT_ID` (required if you have multiple accounts). Use build command `npm run deploy`.
+**Cloudflare Workers Builds (Git)**: under **Workers & Pages → your Worker → Settings → Builds → Build variables**, add:
+
+| Variable | Required | Notes |
+|----------|----------|-------|
+| `D1_DATABASE_ID` | Yes | UUID from `wrangler d1 create ternssh` |
+| `CLOUDFLARE_ACCOUNT_ID` | If multiple accounts | Your Cloudflare account ID |
+
+Recommended build / deploy commands:
+
+| Step | Command |
+|------|---------|
+| Build command | `npm run build` |
+| Deploy command | `npm run cf:deploy` |
+
+> **Do not use** `npx wrangler deploy` as the Deploy command. Run `generate-production-config.mjs` first to inject the real D1 ID into `wrangler.jsonc`.
+
+The deploy script auto-discovers a remote D1 database named `ternssh` on the connected account (same name as the dashboard binding). Set `D1_DATABASE_ID` to override.
 
 ```bash
 npm run deploy

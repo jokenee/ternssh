@@ -115,7 +115,23 @@ export CLOUDFLARE_ACCOUNT_ID=<可选，多账号时指定>
 npm run deploy
 ```
 
-**Cloudflare Workers 构建（Git 连接）**：在构建环境变量中设置 `D1_DATABASE_ID`（必填）和 `CLOUDFLARE_ACCOUNT_ID`（多账号时必填），构建命令使用 `npm run deploy`。
+**Cloudflare Workers 构建（Git 连接）**：在 **Workers & Pages → 你的 Worker → Settings → Builds → Build variables** 中添加：
+
+| 变量 | 必填 | 说明 |
+|------|------|------|
+| `D1_DATABASE_ID` | 是 | `wrangler d1 create ternssh` 输出的 UUID |
+| `CLOUDFLARE_ACCOUNT_ID` | 多账号时必填 | Cloudflare 账号 ID |
+
+构建 / 部署命令建议：
+
+| 步骤 | 命令 |
+|------|------|
+| Build command | `npm run build` |
+| Deploy command | `npm run cf:deploy` |
+
+> **不要用** `npx wrangler deploy` 作为 Deploy command。必须先运行 `generate-production-config.mjs` 把真实 D1 ID 写入 `wrangler.jsonc`。
+
+Deploy 脚本会自动查找账号下名为 `ternssh` 的 D1 数据库（与控制台绑定同名即可），也可手动设置 `D1_DATABASE_ID` 覆盖。
 
 ```bash
 npm run deploy
