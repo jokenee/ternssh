@@ -102,6 +102,14 @@ export interface UpdateServerInput {
   group_id?: string | null;
 }
 
+export interface SavedPasswordRecord {
+  id: string;
+  name: string;
+  value: string;
+  created_at: string;
+  updated_at: string;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
     ...init,
@@ -166,6 +174,17 @@ export const api = {
     }),
   deleteServer: (id: string) =>
     request<{ ok: boolean }>(`/api/v1/servers/${id}`, { method: "DELETE" }),
+  listSavedPasswords: () =>
+    request<{ passwords: SavedPasswordRecord[] }>("/api/v1/saved-passwords"),
+  savePassword: (input: { name: string; value: string }) =>
+    request<{ password: SavedPasswordRecord }>("/api/v1/saved-passwords", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  deleteSavedPassword: (id: string) =>
+    request<{ ok: boolean }>(`/api/v1/saved-passwords/${id}`, {
+      method: "DELETE",
+    }),
   getDashboard: () => request<Dashboard>("/api/v1/dashboards"),
   updateDashboard: (body: {
     name?: string;

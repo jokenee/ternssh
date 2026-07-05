@@ -73,7 +73,7 @@ export function AddServerDialog({
       if (authType === "private_key") {
         maybeSavePrivateKey(keyName, trimmedCredential, saveKey);
       } else {
-        maybeSavePassword(passwordName, trimmedCredential, savePassword);
+        await maybeSavePassword(passwordName, trimmedCredential, savePassword);
       }
       reset();
       await onCreated();

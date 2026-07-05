@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,14 +34,27 @@ export function PasswordField({
   placeholder,
 }: PasswordFieldProps) {
   const t = useT();
-  const [savedPasswords, setSavedPasswords] = useState<SavedPassword[]>(() =>
-    listSavedPasswords(),
-  );
+  const [savedPasswords, setSavedPasswords] = useState<SavedPassword[]>([]);
   const [selectedPasswordId, setSelectedPasswordId] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const refreshSavedPasswords = () => {
-    setSavedPasswords(listSavedPasswords());
-  };
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    void listSavedPasswords()
+      .then((passwords) => {
+        if (!cancelled) setSavedPasswords(passwords);
+      })
+      .catch(() => {
+        if (!cancelled) setSavedPasswords([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSelectSavedPassword = (passwordId: string) => {
     setSelectedPasswordId(passwordId);
@@ -54,16 +67,21 @@ export function PasswordField({
   };
 
   const handleDeleteSavedPassword = (passwordId: string) => {
-    deleteSavedPassword(passwordId);
-    refreshSavedPasswords();
-    if (selectedPasswordId === passwordId) {
-      setSelectedPasswordId("");
-    }
+    void deleteSavedPassword(passwordId)
+      .then(() => {
+        setSavedPasswords((current) =>
+          current.filter((item) => item.id !== passwordId),
+        );
+        if (selectedPasswordId === passwordId) {
+          setSelectedPasswordId("");
+        }
+      })
+      .catch(() => {});
   };
 
   return (
     <div className="grid gap-2">
-      {savedPasswords.length > 0 && (
+      {!loading && savedPasswords.length > 0 && (
         <div className="grid gap-2">
           <Label htmlFor={`${id}-saved`}>{t("savedPassword.savedPasswords")}</Label>
           <div className="flex gap-2">

@@ -78,7 +78,7 @@ export function EditServerDialog({
       if (authType === "private_key" && trimmedCredential) {
         maybeSavePrivateKey(keyName, trimmedCredential, saveKey);
       } else if (authType === "password" && trimmedCredential) {
-        maybeSavePassword(passwordName, trimmedCredential, savePassword);
+        await maybeSavePassword(passwordName, trimmedCredential, savePassword);
       }
       onOpenChange(false);
       await onUpdated();
