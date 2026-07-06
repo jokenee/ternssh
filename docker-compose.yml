@@ -5,7 +5,8 @@ services:
       - "${PORT:-8787}:${PORT:-8787}"
     environment:
       PORT: "${PORT:-8787}"
-      ACCESS_ENABLED: "${ACCESS_ENABLED:-false}"
+      BASICAUTH_USERNAME: "${BASICAUTH_USERNAME:-}"
+      BASICAUTH_PASSWORD: "${BASICAUTH_PASSWORD:-}"
     volumes:
       - ternssh-data:/app/.wrangler
     restart: unless-stopped

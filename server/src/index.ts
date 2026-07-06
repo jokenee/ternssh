@@ -1,6 +1,10 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { IdentityError, resolveUser } from "./auth/identity";
+import {
+  IdentityError,
+  resolveUser,
+  unauthorizedResponse,
+} from "./auth/identity";
 import { SshSession } from "./do/ssh-session";
 import { dashboardRoutes } from "./routes/dashboards";
 import { meRoutes } from "./routes/me";
@@ -19,7 +23,7 @@ app.use(
   cors({
     origin: (origin) => origin ?? "*",
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Cf-Access-Jwt-Assertion"],
+    allowHeaders: ["Content-Type", "Authorization", "Cf-Access-Jwt-Assertion"],
   }),
 );
 
@@ -30,7 +34,7 @@ app.use("/api/*", async (c, next) => {
     await next();
   } catch (error) {
     if (error instanceof IdentityError) {
-      return c.json({ error: error.message }, error.status as 401 | 403);
+      return unauthorizedResponse(error, true);
     }
     console.error("identity error", error);
     return c.json({ error: "Unauthorized" }, 401);
@@ -48,5 +52,19 @@ v1.route("/dashboards", dashboardRoutes);
 v1.route("/sessions", sessionRoutes);
 
 app.route("/api/v1", v1);
+
+app.all("*", async (c) => {
+  try {
+    await resolveUser(c.req.raw, c.env);
+  } catch (error) {
+    if (error instanceof IdentityError) {
+      return unauthorizedResponse(error, false);
+    }
+    console.error("identity error", error);
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  return c.env.ASSETS.fetch(c.req.raw);
+});
 
 export default app;

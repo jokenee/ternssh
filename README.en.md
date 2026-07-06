@@ -150,26 +150,36 @@ Accept these as-is — do not switch to `npx wrangler deploy`. The build step ru
 
 D1 is auto-discovered (database named `ternssh` on the account), or set `D1_DATABASE_ID` / `CLOUDFLARE_ACCOUNT_ID` in Build variables.
 
-Configure Access (`ACCESS_ENABLED`, `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`) **only in Workers Dashboard → Variables and Secrets**, not in wrangler config files.
+Configure auth variables (`ACCESS_*`, `BASICAUTH_*`) **only in Workers Dashboard → Variables and Secrets or Docker env**, not in wrangler config files.
 
-> If Wrangler warns that local `ACCESS_ENABLED: false` will override remote settings, the Deploy command is using `npx wrangler deploy` — switch back to `npm run deploy`.
+> If the Deploy command uses `npx wrangler deploy`, the wrong wrangler config may overwrite dashboard variables. Switch back to `npm run deploy`.
 
 | Component | Platform |
 |-----------|----------|
 | API + frontend | Cloudflare Workers (`server/public/` is the Vite output) |
 | Database | Cloudflare D1 |
 | SSH sessions | Durable Objects (`SshSession`) |
-| Auth (optional) | Cloudflare Access |
+| Auth (optional) | Cloudflare Access / HTTP Basic Auth | Optional gate; shared workspace after auth |
 
-**Open mode**: Set `ACCESS_ENABLED=false` in the Worker dashboard (or omit the variable).
+**Open mode**: No auth variables configured below.
 
-**Access mode**: Create a Self-hosted Application in Zero Trust, then configure in **Workers → Settings → Variables and Secrets** (do not put these in `wrangler.production.jsonc` or each deploy will overwrite them):
+**Access mode** (Cloudflare edge): Create a Self-hosted Application in Zero Trust, then set in **Workers → Settings → Variables and Secrets**:
 
 | Name | Type | Example |
 |------|------|---------|
-| `ACCESS_ENABLED` | Variable | `true` |
 | `ACCESS_TEAM_DOMAIN` | Variable | `your-team.cloudflareaccess.com` (no `https://`) |
 | `ACCESS_AUD` | Secret or Variable | AUD Tag from your Access app (64-char hex) |
+
+**Basic Auth mode** (Docker / self-hosted): Set both username and password:
+
+| Name | Type | Notes |
+|------|------|-------|
+| `BASICAUTH_USERNAME` | Variable | HTTP Basic Auth username |
+| `BASICAUTH_PASSWORD` | Secret | HTTP Basic Auth password |
+
+Access and Basic Auth can be enabled together (both must pass). Configure in the dashboard or Docker env vars, not in `wrangler.production.jsonc`.
+
+When Basic Auth is enabled, **3** failed password attempts from the same IP lock access for **1 hour** (via `CF-Connecting-IP`; cleared on successful login).
 
 The Access application **domain** must match the URL you actually visit (`workers.dev` vs custom domain need matching apps and AUD tags).
 
@@ -309,8 +319,10 @@ flowchart TB
 
 | Mode | Condition | Behavior |
 |------|-----------|----------|
-| **Open mode** | `ACCESS_ENABLED=false` | No login; data belongs to built-in user `default` |
-| **Access mode** | Cloudflare Access configured | Validates JWT; all authorized users share the same servers and layout |
+| **Open mode** | No Access or Basic Auth configured | No login; shared `default` user data |
+| **Access mode** | Both `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD` set | Validates JWT |
+| **Basic Auth mode** | Both `BASICAUTH_USERNAME` and `BASICAUTH_PASSWORD` set | Browser Basic Auth gate |
+| **Combined** | Both auth pairs configured | Requires JWT and Basic Auth |
 
 ### Responsibilities
 

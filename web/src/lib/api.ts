@@ -69,7 +69,7 @@ export interface Dashboard {
 
 export interface MeResponse {
   user: User;
-  authMode: "open" | "access";
+  authMode: "open" | "access" | "basic" | "access+basic";
 }
 
 export interface CreateServerInput {
