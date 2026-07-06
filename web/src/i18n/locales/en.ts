@@ -28,7 +28,7 @@ export const en: Messages = {
     settingsGeneral: "General",
     settingsGeneralHint: "Language and other basic options",
     settingsSecurity: "Security",
-    settingsSecurityHint: "Change login username or password, or sign out",
+    settingsSecurityHint: "Change login username or password",
     language: "Language",
     languageHint: "Choose the interface language",
     siteName: "Site name",

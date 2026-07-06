@@ -26,7 +26,7 @@ export const zh = {
     settingsGeneral: "通用",
     settingsGeneralHint: "语言等基础选项",
     settingsSecurity: "安全",
-    settingsSecurityHint: "修改登录用户名与密码，或退出登录",
+    settingsSecurityHint: "修改登录用户名与密码",
     language: "语言",
     languageHint: "选择界面显示语言",
     siteName: "站点名称",

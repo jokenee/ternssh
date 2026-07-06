@@ -14,7 +14,6 @@ export function SecuritySection() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [loggingOut, setLoggingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -78,11 +77,6 @@ export function SecuritySection() {
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleLogout = () => {
-    setLoggingOut(true);
-    logoutBasicAuth();
   };
 
   if (loading) {
@@ -169,21 +163,6 @@ export function SecuritySection() {
           {saving ? t("security.saving") : t("security.saveChanges")}
         </Button>
       </form>
-
-      <div className="border-t border-[var(--color-border)] pt-6">
-        <h3 className="text-sm font-semibold">{t("security.logoutTitle")}</h3>
-        <p className="mt-1 text-[11px] text-[var(--color-muted-foreground)]">
-          {t("security.logoutHint")}
-        </p>
-        <Button
-          className="mt-3"
-          variant="secondary"
-          disabled={loggingOut}
-          onClick={handleLogout}
-        >
-          {loggingOut ? t("security.loggingOut") : t("security.logout")}
-        </Button>
-      </div>
     </section>
   );
 }
