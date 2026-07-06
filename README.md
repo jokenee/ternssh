@@ -33,7 +33,7 @@
 
 ---
 
-**ternssh** 是一款运行在 Cloudflare Edge 上的 SSH 管理工具。完整文档见 **[Wiki](wiki/README.md)**。
+**ternssh** 是一款运行在 Cloudflare Edge 上的 SSH 管理工具。完整文档见 **[Wiki](wiki/README.md)**（自动同步至 [GitHub Wiki](https://github.com/HaradaKashiwa/ternssh/wiki)）。
 
 ## 文档导航
 

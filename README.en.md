@@ -33,7 +33,7 @@
 
 ---
 
-**ternssh** is an SSH management tool that runs on Cloudflare Edge. Full documentation lives in the **[Wiki](wiki/README.md)**.
+**ternssh** is an SSH management tool that runs on Cloudflare Edge. Full documentation lives in the **[Wiki](wiki/README.md)** (auto-synced to [GitHub Wiki](https://github.com/HaradaKashiwa/ternssh/wiki)).
 
 ## Documentation
 
