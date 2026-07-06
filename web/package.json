@@ -7,7 +7,6 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "postbuild": "node ../scripts/generate-production-config.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
