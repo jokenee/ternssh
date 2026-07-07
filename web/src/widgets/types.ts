@@ -41,7 +41,10 @@ export interface ServerListWidgetProps extends WidgetProps {
 export type SessionCloseReason = "auth_failed" | "disconnected";
 
 export interface TerminalWidgetProps {
+  /** Tabs for the active server only. */
   serverSessions: ServerSession[];
+  /** All sessions across servers; kept mounted to preserve SSH connections. */
+  allSessions: ServerSession[];
   activeServerId: string | null;
   activeSessionId: string | null;
   onSelectSession: (sessionId: string) => void;

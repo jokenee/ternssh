@@ -429,6 +429,7 @@ function sessionTabStatusClass(status: ServerSession["status"]): string {
 
 export function TerminalWidget({
   serverSessions,
+  allSessions,
   activeServerId,
   activeSessionId,
   onSelectSession,
@@ -521,10 +522,13 @@ export function TerminalWidget({
       )}
 
       <div className="relative min-h-0 flex-1">
-        {serverSessions.map((session) => (
+        {allSessions.map((session) => (
           <SessionPane
             key={session.sessionId}
-            active={session.sessionId === activeSessionId}
+            active={
+              session.serverId === activeServerId &&
+              session.sessionId === activeSessionId
+            }
             terminalColors={resolvedTerminalColors}
             session={session}
             t={t}

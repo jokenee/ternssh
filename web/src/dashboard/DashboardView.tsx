@@ -975,6 +975,7 @@ export function DashboardView() {
             return (
               <TerminalWidget
                 serverSessions={serverSessionsForTerminal}
+                allSessions={sessionList}
                 activeServerId={activeServerId}
                 activeSessionId={activeSessionId}
                 onSelectSession={setActiveSessionId}
