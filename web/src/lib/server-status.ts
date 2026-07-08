@@ -74,6 +74,16 @@ export function formatLoad(value: number | null): string {
   return value.toFixed(2);
 }
 
+/** Map load average to ring fill percent using CPU count (fallback: 4 cores). */
+export function loadToPercent(
+  load: number | null,
+  cpuCount: number | null,
+): number | null {
+  if (load === null || !Number.isFinite(load)) return null;
+  const cores = cpuCount && cpuCount > 0 ? cpuCount : 4;
+  return Math.min(100, Math.round((load / cores) * 1000) / 10);
+}
+
 export function formatBitrate(bytesPerSec: number | null): string {
   if (bytesPerSec === null || !Number.isFinite(bytesPerSec)) return "-";
   return `${formatBytes(bytesPerSec)}/s`;

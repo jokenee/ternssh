@@ -5,7 +5,7 @@ import { type Server, type TreeNode } from "@/lib/api";
 import {
   formatBytes,
   formatDuration,
-  formatLoad,
+  loadToPercent,
 } from "@/lib/server-status";
 import {
   getPrimarySessionForServer,
@@ -16,6 +16,7 @@ import { formatPollIntervalLabel } from "@/lib/status-widget-config";
 import { useSessionStatus } from "@/lib/use-session-status";
 import { cn } from "@/lib/utils";
 import { MetricBar } from "@/widgets/shared/MetricBar";
+import { LoadRingChart } from "@/widgets/shared/LoadRingChart";
 
 export interface StatusWidgetProps {
   activeServerId: string | null;
@@ -103,25 +104,22 @@ export function StatusWidget({
 
       {isSessionAlive(session.status) && metrics && (
         <div className="min-h-0 flex-1 space-y-4 overflow-auto p-3">
-          <div className="grid grid-cols-3 gap-2 text-center text-[11px]">
-            <div className="bg-[var(--color-secondary)]/50 p-2">
-              <div className="text-[var(--color-muted-foreground)]">
-                {t("status.load1")}
-              </div>
-              <div className="mt-1 text-sm">{formatLoad(metrics.load1)}</div>
-            </div>
-            <div className="bg-[var(--color-secondary)]/50 p-2">
-              <div className="text-[var(--color-muted-foreground)]">
-                {t("status.load5")}
-              </div>
-              <div className="mt-1 text-sm">{formatLoad(metrics.load5)}</div>
-            </div>
-            <div className="bg-[var(--color-secondary)]/50 p-2">
-              <div className="text-[var(--color-muted-foreground)]">
-                {t("status.load15")}
-              </div>
-              <div className="mt-1 text-sm">{formatLoad(metrics.load15)}</div>
-            </div>
+          <div className="grid grid-cols-3 gap-2">
+            <LoadRingChart
+              label={t("status.load1")}
+              percent={loadToPercent(metrics.load1, metrics.cpuCount)}
+              value={metrics.load1}
+            />
+            <LoadRingChart
+              label={t("status.load5")}
+              percent={loadToPercent(metrics.load5, metrics.cpuCount)}
+              value={metrics.load5}
+            />
+            <LoadRingChart
+              label={t("status.load15")}
+              percent={loadToPercent(metrics.load15, metrics.cpuCount)}
+              value={metrics.load15}
+            />
           </div>
 
           <MetricBar
