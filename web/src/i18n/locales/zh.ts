@@ -265,6 +265,9 @@ export const zh = {
   fileManager: {
     selectServer: "选择或连接服务器以浏览远程文件",
     connectFirst: "请先连接终端会话后再使用文件管理",
+    settingsTitle: "文件管理设置",
+    followTerminalCwd: "跟随终端目录",
+    followTerminalCwdHint: "开启后，文件管理会随当前终端标签页中的 cd 命令自动切换目录",
     home: "用户目录",
     parent: "上级目录",
     upload: "上传文件",

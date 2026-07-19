@@ -22,6 +22,12 @@ import {
 } from "@/lib/session-status-bridge";
 import { registerTerminalRunner } from "@/lib/terminal-bridge";
 import {
+  clearTerminalCwd,
+  setTerminalCwd,
+  updateTerminalCwdFromCommand,
+  updateTerminalCwdFromOutput,
+} from "@/lib/terminal-cwd-bridge";
+import {
   applyInputToDraft,
   buildCompletionPayload,
   findTerminalSuggestions,
@@ -277,6 +283,11 @@ function SessionPane({
         return false;
       }
       const normalized = command.replace(/\r\n/g, "\n");
+      updateTerminalCwdFromCommand(
+        session.sessionId,
+        session.serverId,
+        normalized.trim(),
+      );
       term.write(`\x1b[0m${normalized.replace(/\n/g, "\r\n")}\r\n`);
       currentWs.send(`${normalized}\n`);
       return true;
@@ -316,6 +327,18 @@ function SessionPane({
       void (async () => {
         const data = await decodeWsPayload(event.data);
         if (data.startsWith("{")) {
+          try {
+            const parsed = JSON.parse(data) as {
+              type?: string;
+              path?: string;
+            };
+            if (parsed.type === "cwd" && typeof parsed.path === "string") {
+              setTerminalCwd(session.sessionId, parsed.path);
+              return;
+            }
+          } catch {
+            // not JSON control
+          }
           if (dispatchSessionStatusMessage(session.sessionId, data)) {
             return;
           }
@@ -340,6 +363,7 @@ function SessionPane({
           }
           return;
         }
+        updateTerminalCwdFromOutput(session.sessionId, data);
         terminal.write(data);
       })();
     };
@@ -362,6 +386,11 @@ function SessionPane({
         const command = draftRef.current.trim();
         if (command) {
           pushTerminalHistory(session.serverId, command);
+          updateTerminalCwdFromCommand(
+            session.sessionId,
+            session.serverId,
+            command,
+          );
         }
         draftRef.current = "";
         suggestionsRef.current = [];
@@ -443,6 +472,7 @@ function SessionPane({
       ws.close();
       wsRef.current = null;
       runCommandRef.current = () => false;
+      clearTerminalCwd(session.sessionId);
     };
   }, [session.serverId, session.sessionId, session.wsUrl, t]);
 

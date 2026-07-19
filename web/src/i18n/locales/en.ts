@@ -277,6 +277,10 @@ export const en: Messages = {
   fileManager: {
     selectServer: "Select or connect a server to browse remote files",
     connectFirst: "Connect a terminal session before using the file manager",
+    settingsTitle: "File manager settings",
+    followTerminalCwd: "Follow terminal directory",
+    followTerminalCwdHint:
+      "When enabled, the file manager navigates to match the active terminal tab after cd commands",
     home: "Home",
     parent: "Parent directory",
     upload: "Upload file",

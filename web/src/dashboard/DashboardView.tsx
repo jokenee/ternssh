@@ -34,6 +34,7 @@ import { AddServerDialog } from "./AddServerDialog";
 import { CopyServerDialog } from "./CopyServerDialog";
 import { EditServerDialog } from "./EditServerDialog";
 import { RenameGroupDialog } from "./RenameGroupDialog";
+import { FileManagerSettingsDialog } from "./FileManagerSettingsDialog";
 import { ProcessSettingsDialog } from "./ProcessSettingsDialog";
 import { TerminalSettingsDialog } from "./TerminalSettingsDialog";
 import { AddWidgetMenu } from "./AddWidgetMenu";
@@ -144,6 +145,8 @@ export function DashboardView() {
   const [terminalSettingsWidgetId, setTerminalSettingsWidgetId] = useState<
     string | null
   >(null);
+  const [fileManagerSettingsWidgetId, setFileManagerSettingsWidgetId] =
+    useState<string | null>(null);
   const [aiSettingsWidgetId, setAiSettingsWidgetId] = useState<string | null>(
     null,
   );
@@ -943,15 +946,26 @@ export function DashboardView() {
 
           if (widget.type === "file_manager") {
             return (
-              <Button
-                className="widget-no-drag"
-                size="sm"
-                variant="secondary"
-                title={t("widget.deleteTitle")}
-                onClick={() => handleRemoveWidget(item.i)}
-              >
-                <X className="h-3.5 w-3.5" />
-              </Button>
+              <div className="widget-no-drag flex items-center gap-1">
+                <Button
+                  className="widget-no-drag"
+                  size="sm"
+                  variant="secondary"
+                  title={t("common.settings")}
+                  onClick={() => setFileManagerSettingsWidgetId(item.i)}
+                >
+                  <Settings className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  className="widget-no-drag"
+                  size="sm"
+                  variant="secondary"
+                  title={t("widget.deleteTitle")}
+                  onClick={() => handleRemoveWidget(item.i)}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             );
           }
 
@@ -1134,7 +1148,9 @@ export function DashboardView() {
             return (
               <FileManagerWidget
                 activeServerId={activeServerId}
+                activeSessionId={activeSessionId}
                 sessions={sessions}
+                configJson={widget.config_json}
               />
             );
           }
@@ -1323,6 +1339,23 @@ export function DashboardView() {
         onSaved={(configJson) => {
           if (terminalSettingsWidgetId) {
             handleWidgetConfigChange(terminalSettingsWidgetId, configJson);
+          }
+        }}
+      />
+
+      <FileManagerSettingsDialog
+        configJson={
+          dashboard.widgets.find(
+            (widget) => widget.id === fileManagerSettingsWidgetId,
+          )?.config_json ?? null
+        }
+        open={fileManagerSettingsWidgetId !== null}
+        onOpenChange={(open) => {
+          if (!open) setFileManagerSettingsWidgetId(null);
+        }}
+        onSaved={(configJson) => {
+          if (fileManagerSettingsWidgetId) {
+            handleWidgetConfigChange(fileManagerSettingsWidgetId, configJson);
           }
         }}
       />

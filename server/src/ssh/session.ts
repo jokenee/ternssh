@@ -47,7 +47,8 @@ import { SSHAuth } from './auth';
 import { SSHChannel, type ChannelDataChunk } from './channel';
 import { SFTPHandler } from './sftp-handler';
 import { readUint32 } from './utils';
-import type { ExecResult } from '../lib/server-status';
+import { ExecResult } from '../lib/server-status';
+import { extractAndStripOsc7, stripShellSetupEcho, SHELL_CWD_SETUP } from '../lib/terminal-cwd';
 
 interface PendingExec {
   channelID: number;
@@ -127,6 +128,9 @@ export class SSHSession {
   private keepalivePending: boolean = false;
   private keepaliveTimeout: ReturnType<typeof setTimeout> | null = null;
   private shellReadyTimeout: ReturnType<typeof setTimeout> | null = null;
+  private shellSetupSent = false;
+  private shellReadySent = false;
+  private shellSetupSuppressUntil = 0;
   private terminalSize: TerminalSize = { cols: 120, rows: 40 };
   private debugMode: boolean = false;
 
@@ -1200,8 +1204,7 @@ export class SSHSession {
           this.state = 'shell-requested';
           this.shellReadyTimeout = setTimeout(() => {
             if (this.state === 'shell-requested') {
-              this.state = 'ready';
-              this.sendStatus('Shell 已就绪');
+              this.markShellReady();
             }
           }, 3000);
         } else if (channelID === this.shellChannel.getLocalChannelID() && this.state === 'shell-requested') {
@@ -1210,8 +1213,7 @@ export class SSHSession {
             clearTimeout(this.shellReadyTimeout);
             this.shellReadyTimeout = null;
           }
-          this.state = 'ready';
-          this.sendStatus('Shell 已就绪');
+          this.markShellReady();
         } else if (this.findSftpConnectionByChannelID(channelID)) {
           // SFTP subsystem request confirmed - send SFTP init
           this.sendDebug(`SFTP CHANNEL_SUCCESS received, calling onSubsystemReady`);
@@ -1260,12 +1262,11 @@ export class SSHSession {
               clearTimeout(this.shellReadyTimeout);
               this.shellReadyTimeout = null;
             }
-            this.state = 'ready';
-            this.sendStatus('Shell 已就绪');
+            this.markShellReady();
           }
           const outputData = channel.handleChannelData(payload);
           try {
-            this.ws.send(this.textDecoder.decode(outputData));
+            this.forwardShellOutput(this.textDecoder.decode(outputData));
           } catch (e) {
             this.sendDebug(() => `Send shell output failed: ${e instanceof Error ? e.message : e}`);
           }
@@ -1301,7 +1302,7 @@ export class SSHSession {
           offset += 4;
           const stderrData = payload.subarray(offset, offset + dataLen);
           try {
-            this.ws.send(this.textDecoder.decode(stderrData));
+            this.forwardShellOutput(this.textDecoder.decode(stderrData));
           } catch (e) {
             this.sendDebug(() => `Send shell output failed: ${e instanceof Error ? e.message : e}`);
           }
@@ -1813,6 +1814,42 @@ export class SSHSession {
     }
   }
 
+  private markShellReady(): void {
+    if (this.state !== 'ready') {
+      this.state = 'ready';
+    }
+    if (!this.shellReadySent) {
+      this.shellReadySent = true;
+      this.sendStatus('Shell 已就绪');
+      this.maybeInjectShellSetup();
+    }
+  }
+
+  private maybeInjectShellSetup(): void {
+    if (this.shellSetupSent || this.execOnly || this.state !== 'ready') return;
+    this.shellSetupSent = true;
+    this.shellSetupSuppressUntil = Date.now() + 3_000;
+    this.enqueueChannelData(this.textEncoder.encode(SHELL_CWD_SETUP));
+  }
+
+  private forwardShellOutput(text: string): void {
+    let cleaned = text;
+    if (Date.now() < this.shellSetupSuppressUntil) {
+      cleaned = stripShellSetupEcho(cleaned);
+    }
+    const { output, cwd } = extractAndStripOsc7(cleaned);
+    if (cwd) {
+      try {
+        this.ws.send(JSON.stringify({ type: 'cwd', path: cwd }));
+      } catch {
+        // WebSocket closed
+      }
+    }
+    if (output) {
+      this.ws.send(output);
+    }
+  }
+
   private sendStatus(message: string): void {
     try {
       this.ws.send(JSON.stringify({ type: 'status', message }));
@@ -1862,6 +1899,9 @@ export class SSHSession {
       clearTimeout(this.shellReadyTimeout);
       this.shellReadyTimeout = null;
     }
+    this.shellSetupSent = false;
+    this.shellReadySent = false;
+    this.shellSetupSuppressUntil = 0;
     for (const [ws] of this.sftpConnections) {
       this.closeSFTPChannel(ws);
       try { ws.close(normal ? 1000 : 1011); } catch (e) { this.sendDebug(() => `Close SFTP ws: ${e instanceof Error ? e.message : e}`); }
