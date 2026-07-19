@@ -35,6 +35,7 @@ import { CopyServerDialog } from "./CopyServerDialog";
 import { EditServerDialog } from "./EditServerDialog";
 import { RenameGroupDialog } from "./RenameGroupDialog";
 import { ProcessSettingsDialog } from "./ProcessSettingsDialog";
+import { TerminalSettingsDialog } from "./TerminalSettingsDialog";
 import { AddWidgetMenu } from "./AddWidgetMenu";
 import { DashboardDesktopChrome } from "./DashboardDesktopChrome";
 import { GridDashboard } from "./GridDashboard";
@@ -138,6 +139,9 @@ export function DashboardView() {
     string | null
   >(null);
   const [processSettingsWidgetId, setProcessSettingsWidgetId] = useState<
+    string | null
+  >(null);
+  const [terminalSettingsWidgetId, setTerminalSettingsWidgetId] = useState<
     string | null
   >(null);
   const [aiSettingsWidgetId, setAiSettingsWidgetId] = useState<string | null>(
@@ -915,6 +919,15 @@ export function DashboardView() {
               <div className="widget-no-drag flex items-center gap-1">
                 <Button
                   className="widget-no-drag"
+                  size="sm"
+                  variant="secondary"
+                  title={t("common.settings")}
+                  onClick={() => setTerminalSettingsWidgetId(item.i)}
+                >
+                  <Settings className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  className="widget-no-drag"
                   disabled={!activeServerId}
                   size="sm"
                   title={t("terminal.newTab")}
@@ -1107,6 +1120,7 @@ export function DashboardView() {
                 allSessions={sessionList}
                 activeServerId={activeServerId}
                 activeSessionId={activeSessionId}
+                configJson={widget.config_json}
                 onSelectSession={setActiveSessionId}
                 onAddTerminal={() => void handleAddTerminal()}
                 onCloseTerminal={handleCloseTerminal}
@@ -1292,6 +1306,23 @@ export function DashboardView() {
         onSaved={(configJson) => {
           if (processSettingsWidgetId) {
             handleWidgetConfigChange(processSettingsWidgetId, configJson);
+          }
+        }}
+      />
+
+      <TerminalSettingsDialog
+        configJson={
+          dashboard.widgets.find(
+            (widget) => widget.id === terminalSettingsWidgetId,
+          )?.config_json ?? null
+        }
+        open={terminalSettingsWidgetId !== null}
+        onOpenChange={(open) => {
+          if (!open) setTerminalSettingsWidgetId(null);
+        }}
+        onSaved={(configJson) => {
+          if (terminalSettingsWidgetId) {
+            handleWidgetConfigChange(terminalSettingsWidgetId, configJson);
           }
         }}
       />

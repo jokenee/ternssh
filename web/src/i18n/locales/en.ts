@@ -57,14 +57,6 @@ export const en: Messages = {
     layoutSpacing: "Layout spacing",
     layoutSpacingHint:
       "Adjust gaps between dashboard widgets and the space below the header",
-    terminalTheme: "Terminal theme",
-    terminalThemeDefault: "Follow app theme",
-    terminalThemeCustom: "Custom",
-    terminalThemeHint:
-      "Background follows widget opacity; default uses app theme text and cursor colors",
-    terminalThemeReset: "Reset to current app theme colors",
-    terminalColorForeground: "Text",
-    terminalColorCursor: "Cursor",
   },
   settings: {
     resetAllTitle: "Reset all settings",
@@ -184,6 +176,17 @@ export const en: Messages = {
     tabCount: "{count} terminals · {status}",
     newTab: "New terminal",
     closeTab: "Close terminal",
+    settingsTitle: "Terminal settings",
+    fontSize: "Font size",
+    fontSizeHint: "Adjust terminal text size ({min}–{max}px)",
+    terminalTheme: "Terminal theme",
+    terminalThemeDefault: "Follow app theme",
+    terminalThemeCustom: "Custom",
+    terminalThemeHint:
+      "Background follows widget opacity; default uses app theme text and cursor colors",
+    terminalThemeReset: "Reset to current app theme colors",
+    terminalColorForeground: "Text",
+    terminalColorCursor: "Cursor",
   },
   serverList: {
     loading: "Loading...",
